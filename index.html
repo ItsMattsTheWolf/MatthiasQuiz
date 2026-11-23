@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz Estilo Kahoot — Lenguaje Generacional</title>
+  <style>
+    * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #1a103c;
+      color: #fff;
+      padding: 16px;
+    }
+    .card {
+      width: 100%;
+      max-width: 680px;
+      background: #2b1b5e;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      opacity: 0.9;
+      margin-bottom: 16px;
+    }
+    h2 { margin: 0 0 20px; font-size: 1.35rem; line-height: 1.35; }
+    .options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 540px) {
+      .options { grid-template-columns: 1fr; }
+    }
+    button.opt {
+      border: none;
+      border-radius: 10px;
+      padding: 16px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #fff;
+      cursor: pointer;
+      text-align: left;
+      transition: transform 0.1s ease, opacity 0.2s ease;
+    }
+    button.opt:hover:not(:disabled) { transform: translateY(-2px); }
+    button.opt:disabled { cursor: default; opacity: 0.7; }
+    .c0 { background: #e21b3c; }
+    .c1 { background: #1368ce; }
+    .c2 { background: #d89e00; }
+    .c3 { background: #26890c; }
+    .feedback {
+      margin-top: 18px;
+      min-height: 24px;
+      font-weight: 600;
+    }
+    .next-btn {
+      margin-top: 12px;
+      background: #fff;
+      color: #1a103c;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 18px;
+      font-weight: 700;
+      cursor: pointer;
+      display: none;
+    }
+    footer {
+      margin-top: 24px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.16);
+      font-size: 0.82rem;
+      opacity: 0.8;
+      text-align: center;
+      line-height: 1.45;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <span id="progress">Pregunta 1 de 10</span>
+      <span id="score">Puntos: 0</span>
+    </div>
+    <h2 id="question"></h2>
+    <div class="options" id="options"></div>
+    <div class="feedback" id="feedback"></div>
+    <button class="next-btn" id="nextBtn">Siguiente</button>
+    <footer>
+      Hecho por Mathias Nicolás para ETCC Estudiantes (9no) — Hecho por Polilla Doméstica Creative Studios. 22 de noviembre de 2026
+    </footer>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        q: "¿A qué hace referencia el anglicismo «lore» cuando los jóvenes lo aplican a una persona o grupo?",
+        options: [
+          "El trasfondo y el conjunto de anécdotas de su historia",
+          "Un estilo de música urbana popularizado en redes",
+          "Una prenda de vestir llamativa o de marca",
+          "Una discusión o problema sin importancia"
+        ],
+        answer: 0
+      },
+      {
+        q: "En el ámbito de los vínculos afectivos juveniles, ¿qué define a una persona «migajera»?",
+        options: [
+          "Quien exige demasiada atención sin dar nada a cambio",
+          "Quien se conforma con muestras mínimas o esporádicas de afecto",
+          "Quien evita cualquier tipo de compromiso o charla",
+          "Quien presume de logros sin fundamento"
+        ],
+        answer: 1
+      },
+      {
+        q: "¿Qué comportamiento caracteriza a alguien a quien tildan de «fantasma»?",
+        options: [
+          "Estar distraído y no escuchar lo que se dice",
+          "Apoyar siempre a sus amistades en todo momento",
+          "Alardear o inventar historias para aparentar más de lo que es",
+          "Mostrar entusiasmo extremo antes de un evento"
+        ],
+        answer: 2
+      },
+      {
+        q: "Si una persona afirma estar «re manija» por un acontecimiento, ¿qué estado experimenta?",
+        options: [
+          "Aburrimiento o falta de ganas de hacer algo",
+          "Desilusión tras un plan cancelado",
+          "Indiferencia frente a lo que ocurre",
+          "Entusiasmo intenso o impaciencia por lo que va a ocurrir"
+        ],
+        answer: 3
+      },
+      {
+        q: "¿Qué connota el término «random» al calificar una situación o un evento?",
+        options: [
+          "Algo imprevisto, insólito o sin conexión aparente con el contexto",
+          "Algo planeado con mucho detalle y anticipación",
+          "Algo muy costoso o difícil de conseguir",
+          "Algo aburrido o repetitivo"
+        ],
+        answer: 0
+      },
+      {
+        q: "En el habla cotidiana juvenil, ¿con qué fin se emplea con frecuencia la palabra «literal»?",
+        options: [
+          "Para dudar de la veracidad de un comentario",
+          "Para expresar total acuerdo o identificación con lo dicho",
+          "Para cambiar de tema de forma brusca",
+          "Para despedirse de manera informal"
+        ],
+        answer: 1
+      },
+      {
+        q: "¿Qué actitud se le recrimina a una persona a la que califican de «careta»?",
+        options: [
+          "Tardar mucho en reaccionar a una conversación",
+          "Ser excesivamente sincera y directa",
+          "Fingir una forma de ser distinta para agradar o encajar",
+          "Celebrar un logro con mucha euforia"
+        ],
+        answer: 2
+      },
+      {
+        q: "¿Qué rasgo distingue a quien es etiquetado como «flotón»?",
+        options: [
+          "Inventar historias para llamar la atención",
+          "Tener una actitud hostil o provocadora",
+          "Conformarse con poca atención afectiva",
+          "Estar distraído o desconectado de lo que ocurre alrededor"
+        ],
+        answer: 3
+      },
+      {
+        q: "¿Qué significado posee el término «bardo» en la jerga juvenil?",
+        options: [
+          "Un conflicto, discusión o ambiente caótico y tenso",
+          "Un elogio hacia alguien hábil o capaz",
+          "Una sensación de calma y comodidad",
+          "Un saludo informal entre amistades"
+        ],
+        answer: 0
+      },
+      {
+        q: "¿De qué palabra inglesa deriva la expresión coloquial «bro»?",
+        options: [
+          "Break",
+          "Brother",
+          "Bright",
+          "Bring"
+        ],
+        answer: 1
+      }
+    ];
+
+    let index = 0;
+    let score = 0;
+
+    const elQ = document.getElementById("question");
+    const elOpts = document.getElementById("options");
+    const elProgress = document.getElementById("progress");
+    const elScore = document.getElementById("score");
+    const elFeedback = document.getElementById("feedback");
+    const elNext = document.getElementById("nextBtn");
+
+    function renderQuestion() {
+      const current = questions[index];
+      elProgress.textContent = `Pregunta ${index + 1} de ${questions.length}`;
+      elScore.textContent = `Puntos: ${score}`;
+      elQ.textContent = current.q;
+      elFeedback.textContent = "";
+      elNext.style.display = "none";
+      elOpts.innerHTML = "";
+
+      current.options.forEach((opt, i) => {
+        const btn = document.createElement("button");
+        btn.className = `opt c${i}`;
+        btn.textContent = opt;
+        btn.onclick = () => selectAnswer(i, btn);
+        elOpts.appendChild(btn);
+      });
+    }
+
+    function selectAnswer(chosen, clickedBtn) {
+      const current = questions[index];
+      const allBtns = elOpts.querySelectorAll("button");
+      allBtns.forEach((b) => (b.disabled = true));
+
+      if (chosen === current.answer) {
+        score += 100;
+        elScore.textContent = `Puntos: ${score}`;
+        elFeedback.textContent = "¡Correcto! +100 puntos";
+      } else {
+        elFeedback.textContent = `Incorrecto. Respuesta correcta: ${current.options[current.answer]}`;
+      }
+
+      elNext.style.display = "inline-block";
+    }
+
+    elNext.onclick = () => {
+      index++;
+      if (index < questions.length) {
+        renderQuestion();
+      } else {
+        elProgress.textContent = "Finalizado";
+        elQ.textContent = `Terminaste el quiz con ${score} de ${questions.length * 100} puntos.`;
+        elOpts.innerHTML = "";
+        elFeedback.textContent = "";
+        elNext.style.display = "none";
+      }
+    };
+
+    renderQuestion();
+  </script>
+</body>
+</html>
